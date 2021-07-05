@@ -1,6 +1,6 @@
-function Drawer() {
+function Drawer({ onClose, onRemove, items = [] }) {
   return (
-    <div style={{ display: "none" }} className="overlay">
+    <div className="overlay">
       <div className="drawer p-30">
         <h2 className="d-flex justify-between mb-30 ">
           Корзина{" "}
@@ -8,54 +8,71 @@ function Drawer() {
             className="removeBtn cu-p"
             src="/img/btn-remove.svg"
             alt="remove"
+            onClick={onClose}
           />
         </h2>
 
-        <div className="items">
-          <div className="cartItem d-flex align-center mb-20">
-            <div
-              style={{ backgroundImage: "url(/img/sneakers/img-1.jpg)" }}
-              className="cartItemImg"
-            ></div>
+        {items.length > 0 ? (
+          <div>
+            <div className="items">
+              {items.map((obj) => (
+                <div className="cartItem d-flex align-center mb-20">
+                  <div
+                    style={{ backgroundImage: `url(${obj.imageUrl})` }}
+                    className="cartItemImg"
+                  ></div>
 
-            <div className="mr-20 flex">
-              <p className="mb-5">Мужские Кроссовки Nike Air Max 270</p>
-              <b>12 999 руб.</b>
+                  <div className="mr-20 flex">
+                    <p className="mb-5">{obj.title}</p>
+                    <b>{obj.price} руб.</b>
+                  </div>
+                  <img
+                    onClick={() => onRemove(obj.id)}
+                    className="removeBtn"
+                    src="/img/btn-remove.svg"
+                    alt="remove"
+                  />
+                </div>
+              ))}
             </div>
-            <img className="removeBtn" src="/img/btn-remove.svg" alt="remove" />
-          </div>
+            <div className="cartTotalBlock">
+              <ul>
+                <li className="d-flex">
+                  <span>Итого:</span>
+                  <div></div>
+                  <b>21 498 руб.</b>
+                </li>
+                <li className="d-flex">
+                  <span>Налог 5%</span>
+                  <div></div>
+                  <b>1 074 руб.</b>
+                </li>
 
-          <div className="cartItem d-flex align-center mb-20">
-            <div
-              style={{ backgroundImage: "url(/img/sneakers/img-1.jpg)" }}
-              className="cartItemImg"
-            ></div>
-
-            <div className="mr-20 flex">
-              <p className="mb-5">Мужские Кроссовки Nike Air Max 270</p>
-              <b>12 999 руб.</b>
+                <button className="greenButton">
+                  Оформить заказ <img src="/img/arrow-right.svg" alt="arrow" />
+                </button>
+              </ul>
             </div>
-            <img className="removeBtn" src="/img/btn-remove.svg" alt="remove" />
           </div>
-        </div>
-        <div className="cartTotalBlock">
-          <ul>
-            <li className="d-flex">
-              <span>Итого:</span>
-              <div></div>
-              <b>21 498 руб.</b>
-            </li>
-            <li className="d-flex">
-              <span>Налог 5%</span>
-              <div></div>
-              <b>1 074 руб.</b>
-            </li>
-
-            <button className="greenButton">
-              Оформить заказ <img src="/img/arrow-right.svg" alt="arrow" />
+        ) : (
+          <div class="cartEmpty d-flex align-center justify-center flex-column flex">
+            <img
+              class="mb-20"
+              width="120px"
+              height="120px"
+              src="/img/empty-cart.jpg"
+              alt="Empty"
+            />
+            <h2>Корзина пустая</h2>
+            <p class="opacity-6">
+              Добавьте хотя бы одну пару кроссовок, чтобы сделать заказ.
+            </p>
+            <button onClick={onClose} class="greenButton">
+              <img src="/img/arrow-left.svg" alt="Arrow-left" />
+              Вернуться назад
             </button>
-          </ul>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
