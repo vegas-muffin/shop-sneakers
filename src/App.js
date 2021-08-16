@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Drawer from "./components/Drawer";
 import Home from "./pages/Home";
 import Favorites from "./pages/Favorites";
+import Orders from "./pages/Orders";
 import AppContext from "./context";
 
 function App() {
@@ -17,7 +18,7 @@ function App() {
 
   const [cartOpened, setCartOpened] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
-
+  // first case
   // fetch("https://60e02e2c6b689e001788c95d.mockapi.io/items")
   //   .then((response) => {
   //     return response.json();
@@ -26,33 +27,59 @@ function App() {
 
   React.useEffect(() => {
     async function fetchData() {
-      const itemsResponce = await axios.get(`${mockApiUrl}/items`);
-      const cartResponce = await axios.get(`${mockApiUrl}/cart`);
-      const favoritesResponce = await axios.get(`${mockApiUrl}/favorites`);
+      try {
+        const [cartResponce, favoritesResponce, itemsResponce] =
+          await Promise.all([
+            axios.get(`${mockApiUrl}/cart`),
+            axios.get(`${mockApiUrl}/favorites`),
+            axios.get(`${mockApiUrl}/items`),
+          ]);
+        // const cartResponce = await axios.get(`${mockApiUrl}/cart`);
+        // const favoritesResponce = await axios.get(`${mockApiUrl}/favorites`);
+        // const itemsResponce = await axios.get(`${mockApiUrl}/items`);
 
-      setIsLoading(false);
+        setIsLoading(false);
 
-      setCartItems(cartResponce.data);
-      setFavorites(favoritesResponce.data);
-      setItems(itemsResponce.data);
+        setCartItems(cartResponce.data);
+        setFavorites(favoritesResponce.data);
+        setItems(itemsResponce.data);
+      } catch (error) {
+        alert("Ошибка при запросе данных!");
+        console.error(error);
+      }
     }
 
     fetchData();
   }, []);
 
-  const onAddToCart = (obj) => {
+  const onAddToCart = async (obj) => {
     try {
-      if (cartItems.find((item) => Number(item.id) === Number(obj.id))) {
-        axios.delete(`${mockApiUrl}/cart/${obj.id}`);
+      const findItem = cartItems.find(
+        (item) => Number(item.parentId) === Number(obj.id)
+      );
+      if (findItem) {
         setCartItems((prev) =>
-          prev.filter((item) => Number(item.id) !== Number(obj.id))
+          prev.filter((item) => Number(item.parentId) !== Number(obj.id))
         );
+        axios.delete(`${mockApiUrl}/cart/${findItem.id}`);
       } else {
-        axios.post(`${mockApiUrl}/cart`, obj);
         setCartItems((prev) => [...prev, obj]);
+        const { data } = await axios.post(`${mockApiUrl}/cart`, obj);
+        setCartItems((prev) =>
+          prev.map((item) => {
+            if (item.parentId === data.parentId) {
+              return {
+                ...item,
+                id: data.id,
+              };
+            }
+            return item;
+          })
+        );
       }
     } catch (error) {
       alert("Не удалось добавить карточку в Корзину");
+      console.error(error);
     }
   };
 
@@ -73,8 +100,13 @@ function App() {
   };
 
   const onRemoveItem = (id) => {
-    axios.delete(`${mockApiUrl}/cart/${id}`);
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+    try {
+      axios.delete(`${mockApiUrl}/cart/${id}`);
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      alert("Не удалось удалить из корзины");
+      console.error(error);
+    }
   };
 
   const onChangeSearchInput = (event) => {
@@ -82,7 +114,7 @@ function App() {
   };
 
   const isItemAdded = (id) => {
-    return cartItems.some((obj) => Number(obj.id) === Number(id));
+    return cartItems.some((obj) => Number(obj.parentId) === Number(id));
   };
 
   return (
@@ -103,6 +135,7 @@ function App() {
             items={cartItems}
             onClose={() => setCartOpened(false)}
             onRemove={onRemoveItem}
+            opened={cartOpened}
           />
         ) : null}
 
@@ -123,6 +156,10 @@ function App() {
 
         <Route path="/favorites" exact>
           <Favorites />
+        </Route>
+
+        <Route path="/orders" exact>
+          <Orders />
         </Route>
       </div>
     </AppContext.Provider>

@@ -1,15 +1,18 @@
 import React from "react";
 import axios from "axios";
 
-import Info from "./Info";
-import AppContext from "../context";
+import Info from "../Info";
+import { useCart } from "../../hooks/useCart";
+
+import styles from "./Drawer.module.scss";
 
 const mockApiUrl = "https://60e02e2c6b689e001788c95d.mockapi.io";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function Drawer({ onClose, onRemove, items = [] }) {
-  const { cartItems, setCartItems } = React.useContext(AppContext);
+function Drawer({ onClose, onRemove, items = [], opened }) {
+  const { cartItems, setCartItems, totalPrice } = useCart();
+
   const [orderId, setOrderId] = React.useState(null);
   const [isOrderComplete, setIsOrderComplete] = React.useState(false);
   const [idLoading, setIsLoading] = React.useState(false);
@@ -37,8 +40,8 @@ function Drawer({ onClose, onRemove, items = [] }) {
   };
 
   return (
-    <div className="overlay">
-      <div className="drawer p-30">
+    <div className={`${styles.overlay} ${opened ? styles.overlayVisible : ""}`}>
+      <div className={styles.drawer}>
         <h2 className="d-flex justify-between mb-30 ">
           Корзина{" "}
           <img
@@ -51,7 +54,7 @@ function Drawer({ onClose, onRemove, items = [] }) {
 
         {items.length > 0 ? (
           <div className="d-flex flex-column flex">
-            <div className="items">
+            <div className="items flex">
               {items.map((obj) => (
                 <div
                   key={obj.id}
@@ -80,12 +83,12 @@ function Drawer({ onClose, onRemove, items = [] }) {
                 <li className="d-flex">
                   <span>Итого:</span>
                   <div></div>
-                  <b>21 498 руб.</b>
+                  <b>{totalPrice} руб.</b>
                 </li>
                 <li className="d-flex">
                   <span>Налог 5%</span>
                   <div></div>
-                  <b>1 074 руб.</b>
+                  <b>{totalPrice * 0.05} руб.</b>
                 </li>
 
                 <button
